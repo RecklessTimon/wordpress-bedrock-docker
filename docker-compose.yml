@@ -1,0 +1,66 @@
+version: "3.7"
+
+services:
+  php:
+    build:
+      context: .
+      target: app_php
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    volumes:
+      - php_socket:/var/run/php
+      - ./web:/srv/app/web:rw
+    healthcheck:
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    environment:
+      BEDROCK_VERSION: ${BEDROCK_VERSION:-1.22.2}
+      DATABASE_URL: "mysql://${MYSQL_USER:-app}:${MYSQL_PASSWORD:-ChangeMe}@mysql:3306/${MYSQL_DATABASE:-app}?serverVersion=${MYSQL_VERSION:-8.0}&charset=utf8mb4&unix_socket=/var/run/mysqld/mysqld.sock"
+      #DB_HOST: mysql
+      #DB_NAME: ${MYSQL_DB:-app)
+      #DB_USER: ${MYSQL_USER:-app}
+      #DB_PASSWORD: ${MYSQL_PASSWORD:-!ChangeMe!}
+
+  mysql:
+    image: mysql:${MYSQL_VERSION:-8.0}
+    command: mysqld --default-authentication-plugin=caching_sha2_password
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-app}
+      # You should definitely change the password in production
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ChangeMe}
+      MYSQL_USER: ${MYSQL_USER:-app}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ChangeMe}
+      MYSQL_ROOT_HOST: ${MYSQL_ROOT_HOST:-%}
+    ports:
+      - "3306"
+      - "33060"
+    volumes:
+      - db_data:/var/lib/mysql:rw
+      - db_socket:/var/run/mysqld:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/mysql:rw
+
+  nginx:
+    image: nginx:stable-alpine
+    volumes:
+      - php_socket:/var/run/php
+      - ./web:/srv/app/web
+      - ./docker/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    restart: unless-stopped
+    ports:
+      # HTTP
+      - target: 80
+        published: ${PUBLIC_HTTP_PORT:-80}
+        protocol: tcp
+        host_ip: ${PUBLIC_IP:-127.0.0.1}
+
+volumes:
+  db_data:
+  db_socket:
+  php_socket:
