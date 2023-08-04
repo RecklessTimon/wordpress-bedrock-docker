@@ -1,7 +1,7 @@
 
 FROM composer/composer:2-bin AS composer
 
-FROM php:8.2-fpm-alpine AS app_php
+FROM php:8.1-fpm-alpine AS app_php
 
 # persistent dependencies
 RUN set -eux; \
@@ -12,6 +12,14 @@ RUN set -eux; \
 		ghostscript \
 # Alpine package for "imagemagick" contains ~120 .so files, see: https://github.com/docker-library/wordpress/pull/497
 		imagemagick \
+# Mysql client required for wp-cli db commands
+		mysql-client \
+# Acl required for allow write permissions to web/app
+		acl \
+# Bash completion for deployer
+		bash-completion \
+# SSH client for deployer
+		openssh \
 	;
 
 # install the PHP extensions we need (https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions)
@@ -107,6 +115,13 @@ RUN chmod +x /usr/local/bin/docker-mysqltest
 
 COPY --link docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
+
+RUN mkdir /etc/bash_completion.d
+COPY --link docker/php/docker-deployer-completion /etc/bash_completion.d/dep
+
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp
 
 WORKDIR /srv/app
 
