@@ -19,7 +19,7 @@ services:
             retries: 3
             start_period: 30s
         environment:
-            BEDROCK_VERSION: ${BEDROCK_VERSION:-1.22.2}
+            BEDROCK_VERSION: ${BEDROCK_VERSION:-1.24.4}
             WP_CLI_ALLOW_ROOT: true
             DATABASE_URL: "mysql://${MYSQL_USER:-app}:${MYSQL_PASSWORD:-ChangeMe}@mysql:3306/${MYSQL_DATABASE:-app}?serverVersion=${MYSQL_VERSION:-8.0}&charset=utf8mb4&unix_socket=/var/run/mysqld/mysqld.sock"
             #DB_HOST: mysql
