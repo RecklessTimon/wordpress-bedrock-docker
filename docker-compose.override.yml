@@ -1,9 +1,8 @@
-version: "3.7"
-
 # Development environment override
 services:
   php:
     volumes:
+      - php_root_home:/root/.ssh:rw
       - ./:/srv/app
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
@@ -11,3 +10,6 @@ services:
     extra_hosts:
       # Ensure that host.docker.internal is correctly defined on Linux
       - host.docker.internal:host-gateway
+
+volumes:
+  php_root_home:
