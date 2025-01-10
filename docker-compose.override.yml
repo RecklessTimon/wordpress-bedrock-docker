@@ -2,7 +2,7 @@
 services:
   php:
     volumes:
-      - php_root_home:/root/.ssh:rw
+      - php_root_home:/root:rw
       - ./:/srv/app
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
